@@ -6,6 +6,24 @@ const screenHeight = 32;
 let screen;
 let canvas;
 
+// Create 2D display array and initialize to 0
+let display = [[]];
+zeroDisplayArray();
+
+// Zero array
+function zeroDisplayArray() {
+    for (let i = 0; i < screenWidth; i++) {
+        display[i] = [];
+        for (let j = 0; j < screenHeight; j++) {
+            display[i][j] = 0;
+        }
+    }
+}
+
+// On/Off pixel colors
+const pixelOn = "rgb(255 255 255)";
+const pixelOff = "rgb(0 0 0)";
+
 // Start button and user CPU frequency
 let startBtn;
 let userCPUFreq;
@@ -34,7 +52,8 @@ async function getFile() {
     // const fileName = "danm8ku.ch8";
     // const fileName = "test_opcode.ch8";
     // const fileName = "BC_test.ch8";
-    const fileName = "glitchGhost.ch8";
+    // const fileName = "glitchGhost.ch8";
+    const fileName = document.getElementById("game").value;
 
     try {
         const res = await fetch(fileName);
@@ -98,72 +117,100 @@ let stack = new Array();
 let vReg = new Uint8Array(16);
 
 // Timer and sound registers (60hz)
-let _delayTimer = 0,_soundTimer = 0;
+let _delayTimer = 0, _soundTimer = 0;
 let time = Date.now();
 
 // Input
-let keyDownArr = new Uint8Array(15).fill(0);
+let keyDownArr = new Uint8Array(0x10).fill(0);
 
 onkeydown = (e => {
-    keyDownArr.forEach( e => {
-        console.log(e);
-    });
+    console.log(keyDownArr);
     switch(e.code) {
         case "Digit1":
-            keyDownArr[0x1] = 1;
+            if (keyDownArr[0x1] == 0) {
+                keyDownArr[0x1] = 1;
+            }
             break;
         case "Digit2":
-            keyDownArr[0x2] = 1;
+            if (keyDownArr[0x2] == 0) {
+                keyDownArr[0x2] = 1;
+            }
             break;
         case "Digit3":
-            keyDownArr[0x3] = 1;
+            if (keyDownArr[0x3] == 0) {
+                keyDownArr[0x3] = 1;
+            }
             break;
         case "Digit4":
-            keyDownArr[0xC] = 1;
+            if (keyDownArr[0xC] == 0) {
+                keyDownArr[0xC] = 1;
+            }
             break;
         case "KeyQ":
-            keyDownArr[0x4] = 1;
+            if (keyDownArr[0x4] == 0) {
+                keyDownArr[0x4] = 1;
+            }
             break;
         case "KeyW":
-            keyDownArr[0x5] = 1;
+            if (keyDownArr[0x5] == 0) {
+                keyDownArr[0x5] = 1;
+            }
             break;
         case "KeyE":
-            keyDownArr[0x6] = 1;
+            if (keyDownArr[0x6] == 0) {
+                keyDownArr[0x6] = 1;
+            }
             break;
         case "KeyR":
-            keyDownArr[0xD] = 1;
+            if (keyDownArr[0xD] == 0) {
+                keyDownArr[0xD] = 1;
+            }
             break;
         case "KeyA":
-            keyDownArr[0x7] = 1;
+            if (keyDownArr[0x7] == 0) {
+                keyDownArr[0x7] = 1;
+            }
             break;
         case "KeyS":
-            keyDownArr[0x8] = 1;
+            if (keyDownArr[0x8] == 0) {
+                keyDownArr[0x8] = 1;
+            }
             break;
         case "KeyD":
-            keyDownArr[0x9] = 1;
+            if (keyDownArr[0x9] == 0) {
+                keyDownArr[0x9] = 1;
+            }
             break;
         case "KeyF":
-            keyDownArr[0xE] = 1;
+            if (keyDownArr[0xE] == 0) {
+                keyDownArr[0xE] = 1;
+            }
             break;
         case "KeyZ":
-            keyDownArr[0xA] = 1;
+            if (keyDownArr[0xA] == 0) {
+                keyDownArr[0xA] = 1;
+            }
             break;
         case "KeyX":
-            keyDownArr[0x0] = 1;
+            if (keyDownArr[0x0] == 0) {
+                keyDownArr[0x0] = 1;
+            }
             break;
         case "KeyC":
-            keyDownArr[0xB] = 1;
+            if (keyDownArr[0xB] == 0) {
+                keyDownArr[0xB] = 1;
+            }
             break;
         case "KeyV":
-            keyDownArr[0xF] = 1;
-            break;
-        case "Space":
-            fetchOp();
+            if (keyDownArr[0xF] == 0) {
+                keyDownArr[0xF] = 1;
+            }
             break;
     }
 });
 
 onkeyup = (e => {
+    console.log("up");
     switch(e.code) {
         case "Digit1":
             keyDownArr[0x1] = 0;
@@ -227,7 +274,7 @@ function fetchOp() {
     decodeOp(opByte1, opByte2);
 }
 
-// Decode
+// Decode & Execute
 function decodeOp(op1, op2) {
     // Bitmask to get each nibble (half-byte) value
     // TODO: Figure out a better way to get first hex number out of op1 and op2
@@ -336,7 +383,7 @@ function decodeOp(op1, op2) {
 
                 case 0x5:
                     // SUBTRACT: sets VX to the result of VX - VY.
-                    if (vReg[opX] >= vReg[opY]) {
+                    if (vReg[opX] > vReg[opY]) {
                         vReg[0xF] = 1;
                     }
                     else {
@@ -347,7 +394,7 @@ function decodeOp(op1, op2) {
 
                 case 0x7:
                     // SUBTRACT: sets VX to the result of VY - VX.
-                    if (vReg[opY] >= vReg[opX]) {
+                    if (vReg[opY] > vReg[opX]) {
                         vReg[0xF] = 1;
                     }
                     else {
@@ -365,20 +412,23 @@ function decodeOp(op1, op2) {
                 Since different games expect different behavior, you could consider making the behavior configurable by the user.*/
                 case 0x6:
                     // SHIFT: Right, set VF to bit shifted out
-                    //vReg[opX] = vReg[opY]; // TODO: Make this optional
+                    vReg[opX] = vReg[opY]; // TODO: Make this optional
                     if (vReg[opX] & 0x01 == 1) {
                         vReg[0xF] = 1;
                     }
                     else {
                         vReg[0xF] = 0;
                     }
+                    console.log("Before right shift: " + vReg[opX]);
+                    console.log("VF: " + vReg[0xF]);
                     vReg[opX] >>= 1;
+                    console.log("After right shift: " + vReg[opX]);
                     break;
 
                 case 0xE:
                     // SHIFT: Left, set VF to bit shifted out
                     // If statement uses bitmask 1000 0000 to check if most significant bit is one (for overflow simulation)
-                    // vReg[opX] = vReg[opY]; // TODO: Make this optional
+                    vReg[opX] = vReg[opY]; // TODO: Make this optional
                     // TODO: Find better way to determine most significant bit
                     if (vReg[opX] < 128) {
                         vReg[0xF] = 0;
@@ -386,8 +436,15 @@ function decodeOp(op1, op2) {
                     else {
                         vReg[0xF] = 1;
                     }
+                    console.log("Before left shift: " + vReg[opX]);
+                    console.log("VF: " + vReg[0xF]);
+
                     vReg[opX] &= 0x7F; // JS converts numbers to 32-bit before bit shifting so we use bitmask to remove most significant bit (simulate overflow) (NOTE: changed registers to byte type so this is not necessary anymore)
+                    console.log("After truncate, before left shift: " + vReg[opX]);
+                    
                     vReg[opX] <<= 1;
+                    console.log("After left shift: " + vReg[opX]);
+
                     break;
             }
             break;
@@ -417,39 +474,39 @@ function decodeOp(op1, op2) {
         case 0xD:
             print("Draw X:" + opX.toString(16) + " Y:" + opY.toString(16) + " N:" + opN.toString(16));
             let yCoord = vReg[opY] % 32;
-            vReg[0xF] = 0;
             let n = opN;
+            vReg[0xF] = 0;
             for (let i = 0; i < n; i++) {
                 let xCoord = vReg[opX] % 64;
                 const spriteData = ("00000000" + memory[_I + i].toString(2)).slice(-8);
                 for (let j = 0; j < 8; j++) {
                     if (spriteData[j] == 1) {
-                        let flagBit = 1;
                         let pixelData = canvas.getImageData(xCoord, yCoord, 1, 1).data;
-                        if (pixelData[0] == 1) {
-                            flagBit = 0;
+                        const pixelDataStr = "rgb(" + pixelData[0] + " " + pixelData[1] + " " + pixelData[2] + ")";
+                        if (pixelDataStr == pixelOn) {
                             vReg[0xF] = 1;
                         }
-                        draw(xCoord, yCoord, flagBit);
+                        display[xCoord][yCoord] ^= 1;
                     }
                     xCoord++;
                 }
                 yCoord++;
             }
+            draw();
             break;
         
         case 0xE:
             switch(op2) {
                 case 0x9E:
                     // Skip (_PC + 2) if key is down
-                    if (keyDownArr[opX] == 1) {
+                    if (keyDownArr[vReg[opX]] == 1) {
                         _PC += 2;
                     }
                     break;
 
                 case 0xA1:
                     // Skip (_PC + 2) if key is not down
-                    if (keyDownArr[opX] == 0) {
+                    if (keyDownArr[vReg[opX]] == 0) {
                         _PC += 2;
                     }
                     break;
@@ -485,8 +542,10 @@ function decodeOp(op1, op2) {
                     // GET KEY: This instruction “blocks”; it stops executing instructions and waits for key input (or loops forever, unless a key is pressed).
                     let keyPressed = false;
                     for (let i = 0; i < keyDownArr.length; i++) {
-                        if (GetKey.keyDownArrState[i] != keyDownArr[i] && keyDownArr[i] == 1) {
+                        if (keyDownArr[i] == 1) {
                             vReg[opX] = keyDownArr[i];
+                            keyPressed = true;
+                            _PC += 2;
                             break;
                         }
                     }
@@ -604,30 +663,33 @@ class GetKey {
 }
 
 // Draw
-function draw(x, y, flagBit) {
-    if (flagBit == 1) {
-        canvas.fillStyle = "rgb(0 0 0)";
-    }
-    else {
-        canvas.fillStyle = "rgb(255 255 255)";
-    }
-    canvas.fillRect(x, y, 1, 1);
-}
-
-// Clear screen
-function clearScreen() {
-    for (let i = 1; i <= screenWidth; i++) {
-        for (let j = 1; j <= screenHeight; j++) {
-            draw(i, j, 0);
+function draw() {
+    for (let x = 0; x < screenWidth; x++) {
+        for (let y = 0; y < screenHeight; y++) {
+            const bit = display[x][y];
+            if (bit) {
+                canvas.fillStyle = pixelOn;
+            }
+            else {
+                canvas.fillStyle = pixelOff;
+            }
+            canvas.fillRect(x, y, 1, 1);
         }
     }
 }
 
+// Clear screen
+function clearScreen() {
+    zeroDisplayArray();
+    draw();
+}
+
 // Start loop
 function startLoop() {
+    time = Date.now();
     loopInterval = setInterval(() => {
+        // TODO: Delay and sound timers should decrement at 60HZ but Glitch Ghost run very slow at 16.67, need to find fix
         if (time + 16.667 <= Date.now()) {
-            time = Date.now();
             if (_delayTimer > 0) {
                 _delayTimer--;
             }
@@ -637,13 +699,11 @@ function startLoop() {
             time = Date.now();
         }
 
-        fetchOp();
-        
-    }, 1000 / cpuFreq);
+        for (let i = 0; i < (100); i++) {
+            fetchOp();
+        }
+    }, 5);
 }
-
-
-
 
 
 /// Helpers
